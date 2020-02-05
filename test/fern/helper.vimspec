@@ -115,8 +115,8 @@ Describe fern#helper
         It returns marked nodes
           Assert Equals(helper.sync.get_marked_nodes(), [])
 
-          let helper.async.set_mark(['deep'], 1)
-          let helper.async.set_mark(['shallow'], 1)
+          call helper.async.set_mark(['deep'], 1)
+          call helper.async.set_mark(['shallow'], 1)
           Assert Equals(helper.sync.get_marked_nodes(), [
                 \ helper.fern.nodes[1],
                 \ helper.fern.nodes[3],
@@ -126,7 +126,8 @@ Describe fern#helper
 
       Describe .get_selected_nodes()
         It returns marked nodes if at least one node has marked
-          let helper.async.set_mark([], 1)
+          call helper.async.set_mark(['deep'], 1)
+          call helper.async.set_mark(['shallow'], 1)
           Assert Equals(helper.sync.get_selected_nodes(), helper.sync.get_marked_nodes())
         End
 
@@ -159,11 +160,28 @@ Describe fern#helper
         It does not raise exception
           call helper.sync.restore_cursor()
         End
+
+        It restores cursor position saved by .save_cursor()
+          call helper.sync.set_cursor([3, 4])
+          call helper.sync.save_cursor()
+          call helper.sync.set_cursor([1, 1])
+          Assert Equals(helper.sync.get_cursor(), [1, 1])
+          call helper.sync.restore_cursor()
+          Assert Equals(helper.sync.get_cursor(), [3, 1])
+        End
       End
 
       Describe .cancel()
         It does not raise exception
           call helper.sync.cancel()
+        End
+
+        It invokes cancel signal through CancellationToken
+          let token = helper.fern.source.token
+          Assert False(token.cancellation_requested())
+
+          call helper.sync.cancel()
+          Assert True(token.cancellation_requested())
         End
       End
 
