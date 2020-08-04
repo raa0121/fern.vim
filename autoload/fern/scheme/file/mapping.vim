@@ -115,7 +115,6 @@ endfunction
 function! s:map_move(helper) abort
   let nodes = a:helper.sync.get_selected_nodes()
   let token = a:helper.fern.source.token
-  let ps = []
   let pairs = []
   for node in nodes
     let src = node._path
@@ -129,15 +128,16 @@ function! s:map_move(helper) abort
     endif
     call add(pairs, [src, dst])
   endfor
-  for [src, dst] in fern#internal#rename#solve(pairs)
-    call add(ps, fern#scheme#file#shutil#move(src, dst, token))
-  endfor
+  let fs = map(
+        \ fern#internal#rename#solve(pairs),
+        \ { -> funcref('s:_rename', v:val + [token]) }
+        \)
   let root = a:helper.sync.get_root_node()
-  return s:Promise.all(ps)
+  return fern#internal#promise#chain(fs)
         \.then({ -> a:helper.async.collapse_modified_nodes(nodes) })
         \.then({ -> a:helper.async.reload_node(root.__key) })
         \.then({ -> a:helper.async.redraw() })
-        \.then({ -> a:helper.sync.echo(printf('%d items are moved', len(ps))) })
+        \.then({ -> a:helper.sync.echo(printf('%d items are moved', len(fs))) })
 endfunction
 
 function! s:map_trash(helper) abort
@@ -194,6 +194,16 @@ function! s:map_remove(helper) abort
         \.then({ -> a:helper.async.reload_node(root.__key) })
         \.then({ -> a:helper.async.redraw() })
         \.then({ -> a:helper.sync.echo(printf('%d items are removed', len(ps))) })
+endfunction
+
+function! s:_rename(src, dst, token) abort
+  if !filereadable(a:src) && !isdirectory(a:src)
+    echohl WarningMsg
+    echomsg printf('[fern] move: %s does not exist', a:src)
+    echohl None
+    return s:Promise.resolve()
+  endif
+  return fern#scheme#file#shutil#move(a:src, a:dst, a:token)
 endfunction
 
 let g:fern#scheme#file#mapping#mappings = get(g:, 'fern#scheme#file#mapping#mappings', [
