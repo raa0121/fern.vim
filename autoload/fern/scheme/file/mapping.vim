@@ -116,6 +116,7 @@ function! s:map_move(helper) abort
   let nodes = a:helper.sync.get_selected_nodes()
   let token = a:helper.fern.source.token
   let ps = []
+  let pairs = []
   for node in nodes
     let src = node._path
     let dst = input(
@@ -126,6 +127,9 @@ function! s:map_move(helper) abort
     if empty(dst) || src ==# dst
       continue
     endif
+    call add(pairs, [src, dst])
+  endfor
+  for [src, dst] in fern#internal#rename#solve(pairs)
     call add(ps, fern#scheme#file#shutil#move(src, dst, token))
   endfor
   let root = a:helper.sync.get_root_node()

@@ -54,11 +54,12 @@ function! s:map_rename(helper, opener) abort
         \.then({ -> a:helper.sync.echo(printf('%d items are renamed', ns.n)) })
 endfunction
 
-function! s:_map_rename(helper, result) abort
+function! s:_map_rename(helper, pairs) abort
   let token = a:helper.fern.source.token
   let ps = []
-  for pair in a:result
+  for pair in fern#internal#rename#solve(a:pairs)
     let [src, dst] = pair
+    echomsg printf("%s -> %s", src, dst)
     if !filereadable(src) && !isdirectory(src)
       echohl WarningMsg
       echo printf('%s does not exist', src)
