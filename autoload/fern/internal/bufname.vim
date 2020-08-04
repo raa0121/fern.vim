@@ -2,7 +2,7 @@ let s:PATTERN = '^$~.*[]\'
 
 function! fern#internal#bufname#parse(bufname, ...) abort
   let cwd = a:0 ? a:1 : getcwd()
-  let bufname = a:bufname[-1:] ==# '$'
+  let bufname = a:bufname[-1:] ==# '/'
         \ ? a:bufname[:-2]
         \ : a:bufname
   if bufname[:6] ==# 'fern://'
