@@ -1,4 +1,11 @@
 let s:PATTERN = '^$~.*[]\'
+let s:FRI = {
+      \ 'scheme': '',
+      \ 'authority': '',
+      \ 'path': '',
+      \ 'query': {},
+      \ 'fragment': '',
+      \}
 
 function! fern#fri#parse(expr) abort
   let remains = a:expr
@@ -29,17 +36,18 @@ function! fern#fri#parse(expr) abort
 endfunction
 
 function! fern#fri#format(fri) abort
+  let fri = extend(copy(s:FRI), a:fri)
   let expr = printf(
         \ '%s://%s/%s',
-        \ a:fri.scheme,
-        \ s:encode_authority(a:fri.authority),
-        \ s:encode_path(a:fri.path),
+        \ fri.scheme,
+        \ s:encode_authority(fri.authority),
+        \ s:encode_path(fri.path),
         \)
-  if !empty(a:fri.query)
-    let expr .= ';' . s:format_query(a:fri.query)
+  if !empty(fri.query)
+    let expr .= ';' . s:format_query(fri.query)
   endif
-  if !empty(a:fri.fragment)
-    let expr .= '#' . s:encode_fragment(a:fri.fragment)
+  if !empty(fri.fragment)
+    let expr .= '#' . s:encode_fragment(fri.fragment)
   endif
   return expr
 endfunction

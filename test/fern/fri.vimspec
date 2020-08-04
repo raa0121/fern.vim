@@ -143,6 +143,44 @@ Describe fern#fri
             \}
       Assert Equals(fern#fri#format(want), expr)
     End
+
+    It allows partial FRI
+      Assert Equals(fern#fri#format({'scheme': 'hello'}), {
+            \ 'scheme': 'hello',
+            \ 'authority': '',
+            \ 'path': '',
+            \ 'query': {},
+            \ 'fragment': '',
+            \})
+      Assert Equals(fern#fri#format({'authority': 'hello'}), {
+            \ 'scheme': '',
+            \ 'authority': 'hello',
+            \ 'path': '',
+            \ 'query': {},
+            \ 'fragment': '',
+            \})
+      Assert Equals(fern#fri#format({'path': 'hello'}), {
+            \ 'scheme': '',
+            \ 'authority': '',
+            \ 'path': 'hello',
+            \ 'query': {},
+            \ 'fragment': '',
+            \})
+      Assert Equals(fern#fri#format({'query': {'hello': 1}), {
+            \ 'scheme': '',
+            \ 'authority': '',
+            \ 'path': '',
+            \ 'query': {'hello': 1},
+            \ 'fragment': '',
+            \})
+      Assert Equals(fern#fri#format({'fragment': 'hello'}), {
+            \ 'scheme': '',
+            \ 'authority': '',
+            \ 'path': '',
+            \ 'query': {},
+            \ 'fragment': 'hello',
+            \})
+    End
   End
 
   Describe #encode()
