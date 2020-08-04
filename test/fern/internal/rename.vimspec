@@ -1,0 +1,100 @@
+Describe fern#internal#rename
+  Before all
+    let options = {
+          \ 'intermediator': { p -> '@int/' . p },
+          \}
+  End
+
+  Describe #solve()
+    It solves multiple flat renames
+      let pairs = [
+            \ ['a', 'A'],
+            \ ['b', 'B'],
+            \ ['c', 'C'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['a', 'A'],
+            \ ['b', 'B'],
+            \ ['c', 'C'],
+            \])
+    End
+
+    It solves multiple flat nested renames
+      let pairs = [
+            \ ['alpha/a', 'beta/A'],
+            \ ['alpha/b', 'beta/B'],
+            \ ['alpha/c', 'beta/C'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['alpha/a', 'beta/A'],
+            \ ['alpha/b', 'beta/B'],
+            \ ['alpha/c', 'beta/C'],
+            \])
+    End
+
+    It solves multiple inflat nested renames
+      let pairs = [
+            \ ['alpha', 'beta'],
+            \ ['alpha/a', 'beta/A'],
+            \ ['alpha/b', 'beta/A/B'],
+            \ ['alpha/c', 'beta/A/B/C'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['alpha', 'beta'],
+            \ ['beta/a', 'beta/A'],
+            \ ['beta/b', 'beta/A/B'],
+            \ ['beta/c', 'beta/A/B/C'],
+            \])
+    End
+
+    It solves cross renames
+      let pairs = [
+            \ ['alpha', 'B/A/ALPHA'],
+            \ ['alpha/a', 'B/A'],
+            \ ['alpha/a/b', 'B'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['alpha/a/b', 'B'],
+            \ ['alpha/a', 'B/A'],
+            \ ['alpha', 'B/A/ALPHA'],
+            \])
+    End
+
+    It solves cyclic renames
+      let pairs = [
+            \ ['alpha', 'beta'],
+            \ ['beta', 'gamma'],
+            \ ['gamma', 'alpha'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['alpha', '@int/beta'],
+            \ ['beta', '@int/gamma'],
+            \ ['gamma', '@int/alpha'],
+            \ ['@int/beta', 'beta'],
+            \ ['@int/gamma', 'gamma'],
+            \ ['@int/alpha', 'alpha'],
+            \])
+    End
+
+    It solves cyclic renames type 2
+      let pairs = [
+            \ ['a', 'b'],
+            \ ['a/b/c', 'b/b'],
+            \ ['a/b', 'b/a'],
+            \]
+      let procs = fern#internal#rename#solve(pairs, options)
+      Assert Equals(procs, [
+            \ ['a', 'b'],
+            \ ['b/b/c', '@int/b/b'],
+            \ ['b/b', '@int/b/a'],
+            \ ['@int/b/b', 'b/b'],
+            \ ['@int/b/a', 'b/a'],
+            \])
+    End
+  End
+End
